@@ -9,7 +9,8 @@ Authors@R: person(
 Description: The package interactively renders an HTML table of packages
   associated with the given emails.
 Depends: shiny
-Imports: BiocPkgTools,
+Imports:
+  BiocPkgTools,
   DT
 License: Artistic-2.0
 Encoding: UTF-8
