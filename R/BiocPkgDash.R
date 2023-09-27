@@ -1,3 +1,4 @@
+#' @importFrom BiocPkgTools biocMaintained
 #' @export
 BiocPkgDash <- function(...) {
     emailField <- function(id, label = "email") {
