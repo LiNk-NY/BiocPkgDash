@@ -4,7 +4,7 @@ Title: An interactive Shiny dashboard for Bioconductor package maintainers
 Version: 0.99.0
 Authors@R: person(
     "Marcel", "Ramos", , "marcel.ramosperez@roswellpark.org", "cre",
-    c(ORCID = "")
+    c(ORCID = "0000-0002-3242-0582")
   )
 Description: The package interactively renders an HTML table of packages
   associated with the given emails.
