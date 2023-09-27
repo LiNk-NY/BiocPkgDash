@@ -17,16 +17,20 @@ renderDF <- function(email) {
 
 .buildHTMLBadge <- function(package, version) {
     datdf <- data.frame(package = package, version = version)
-    shieldtemp <-
-        "https://bioconductor.org/shields/build/{{version}}/bioc/{{package}}.svg"
+    shieldtemp <- paste0(
+        "https://bioconductor.org/shields/build",
+        "/{{version}}/bioc/{{package}}.svg"
+    )
     shieldurl <- whisker::whisker.render(shieldtemp, data = datdf)
     alttemp <- ' alt="Bioconductor-{{version}} Build Status"></a>'
     alttxt <- whisker::whisker.render(
         alttemp,
         data = list(version = version)
     )
-    landtemp <-
-        "https://bioconductor.org/checkResults/{{version}}/bioc-LATEST/{{package}}/"
+    landtemp <- paste0(
+        "https://bioconductor.org/checkResults/",
+        "{{version}}/bioc-LATEST/{{package}}/"
+    )
     landing <- whisker::whisker.render(landtemp, data = datdf)
     paste0(
         '<a href=', dQuote(landing), ' target="_blank" rel = "noopener">',
