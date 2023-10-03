@@ -21,32 +21,52 @@ renderDoc <- function(email) {
     maindf <- biocMaintained(main = email)
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
     rsn <- BiocPkgTools:::repo_short_names
-    badgeKey <- rsn[rsn[["repository"]] == tolower(sourceType), "stat.url"]
+    badgeKey <- rsn[match(tolower(sourceType), rsn[["repository"]]), "stat.url"]
     rshields <- paste0(
-        .SHIELDS_URL, "release/", badgeKey, maindf[["Package"]], ".svg"
+        .SHIELDS_URL, "release/", badgeKey, "/", maindf[["Package"]], ".svg"
     )
     dshields <- paste0(
-        .SHIELDS_URL, "devel/", badgeKey, maindf[["Package"]], ".svg"
+        .SHIELDS_URL, "devel/", badgeKey, "/", maindf[["Package"]], ".svg"
+    )
+    rresults <- paste0(
+        "http://bioconductor.org/checkResults/release/",
+        badgeKey, "-LATEST/", maindf[["Package"]]
+    )
+    dresults <- paste0(
+        "http://bioconductor.org/checkResults/devel/",
+        badgeKey, "-LATEST/", maindf[["Package"]]
     )
     mdf <- cbind.data.frame(
         maindf,
-        pkgurl = paste0("https://bioconductor.org/packages/", mdf[["Package"]])
+        pkgurl =
+            paste0("https://bioconductor.org/packages/", maindf[["Package"]]),
+        rshield = rshields,
+        dshield = dshields,
+        rresult = rresults,
+        dresult = dresults
     )
-    datalist <- unname(split(adf, adf[["package"]]))
+    datalist <- unname(split(mdf, mdf[["Package"]]))
     tableTemplate <- c(
+        "---",
+        "title: Bioconductor Packages",
+        "---",
         "| Name | Bioc-release | Bioc-devel |",
         "|:-----:|:-----:|:-----:|",
         "{{#packages}}",
-        paste0("| [{{{package}}}]({{{pkgurl}}}) |",
-            " [![Bioconductor-release Build Status]({{{rshield}}})] |",
-            " [![Bioconductor-devel Build Status]({{{dshield}}})]"
+        paste0("| [{{{Package}}}]({{{pkgurl}}}) |",
+            " [![Bioconductor-release Build Status]({{{rshield}}})]({{rresult}}) |",
+            " [![Bioconductor-devel Build Status]({{{dshield}}})]({{dresult}}) |"
         ),
         "{{/packages}}"
     )
-    whisker.render(
+    rtext <- whisker::whisker.render(
         template = tableTemplate,
         data = list(packages = datalist)
     )
+    mdfile <- tempfile(fileext = ".md")
+    outhtml <- tempfile(fileext = ".html")
+    writeLines(text = rtext, con = mdfile)
+    rmarkdown::render(input = mdfile, output_file = outhtml)
 }
 
 .buildHTMLBadge <- function(package, version) {
