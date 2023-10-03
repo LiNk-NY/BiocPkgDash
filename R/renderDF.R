@@ -1,22 +1,49 @@
+.SHIELDS_URL <- "http://bioconductor.org/shields/build/"
+.CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
+
 renderDF <- function(email) {
-    maindf <- biocMaintained(main = email)
-    packages <- maindf[["Package"]]
-    release_badges <-
-        vapply(packages, .buildHTMLBadge, character(1L), version = "release")
-    devel_badges <-
-        vapply(packages, .buildHTMLBadge, character(1L), version = "devel")
+    ## annotation badges not supported
+    maindf <- biocMaintained(
+        main = email, pkgType = c("software", "data-experiment", "workflows")
+    )
+    sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
+    sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
+    sourceType <- gsub("ExperimentData", "data-experiment", sourceType)
+    sourceType <- gsub("Workflow", "workflows", sourceType)
+    rsn <- BiocPkgTools:::repo_short_names
+    shortType <- rsn[
+        match(tolower(sourceType), rsn[["repository"]]), "stat.url"
+    ]
+    version <- c("release", "devel")
+
+    templates <- c(
+        paste0(.SHIELDS_URL, version, "/{{shortType}}/{{package}}.svg"),
+        paste0(
+            .CHECK_RESULTS_URL, version, "/{{shortType}}-LATEST/{{package}}"
+        )
+    )
+    names(templates) <- c("rshield", "dshield", "rresult", "dresult")
+
+    urldf <- .build_urls_temp(
+        packages = maindf[["Package"]],
+        shortType = shortType,
+        templates = templates
+    )
+    rellink <- .build_html_link(
+        urldf, "rshield", "rresult", "release"
+    )
+    devlink <- .build_html_link(
+        urldf, "dshield", "dresult", "devel"
+    )
 
     data.frame(
-        Package = packages,
-        `Bioc-release` = unname(release_badges),
-        `Bioc-devel` = unname(devel_badges),
+        Package = maindf[["Package"]],
+        `Bioc-release` = rellink,
+        `Bioc-devel` = devlink,
         row.names = NULL,
         check.names = FALSE
     )
 }
-
-.SHIELDS_URL <- "http://bioconductor.org/shields/build/"
-.CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
 
 .build_urls_temp <- function(packages, shortType, templates) {
     .data <- data.frame(
@@ -80,26 +107,10 @@ renderDoc <- function(email) {
     rmarkdown::render(input = mdfile, output_file = outhtml)
 }
 
-.buildHTMLBadge <- function(package, version) {
-    datdf <- data.frame(package = package, version = version)
-    shieldtemp <- paste0(
-        "https://bioconductor.org/shields/build",
-        "/{{version}}/bioc/{{package}}.svg"
-    )
-    shieldurl <- whisker::whisker.render(shieldtemp, data = datdf)
-    alttemp <- ' alt="Bioconductor-{{version}} Build Status"></a>'
-    alttxt <- whisker::whisker.render(
-        alttemp,
-        data = list(version = version)
-    )
-    landtemp <- paste0(
-        "https://bioconductor.org/checkResults/",
-        "{{version}}/bioc-LATEST/{{package}}/"
-    )
-    landing <- whisker::whisker.render(landtemp, data = datdf)
+.build_html_link <- function(.data, shieldCol, resultCol, version) {
     paste0(
-        '<a href=', dQuote(landing), ' target="_blank">',
-        '<img src=', dQuote(shieldurl), alttxt
+        '<a href=', dQuote(.data[[resultCol]]), ' target="_blank">',
+        '<img src=', dQuote(.data[[shieldCol]]),
+        ' alt="Bioconductor-', version, ' Build Status"></a>'
     )
 }
-
