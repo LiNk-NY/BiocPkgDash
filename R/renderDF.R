@@ -61,14 +61,19 @@ renderDF <- function(email) {
     cbind.data.frame(package = .data[["package"]], result)
 }
 
-renderDoc <- function(email) {
-    maindf <- biocMaintained(main = email)
+renderDoc <- function(email, file) {
+    maindf <- biocMaintained(
+        main = email, pkgType = c("software", "data-experiment", "workflows")
+    )
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
+    sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
+    sourceType <- gsub("ExperimentData", "data-experiment", sourceType)
+    sourceType <- gsub("Workflow", "workflows", sourceType)
     rsn <- BiocPkgTools:::repo_short_names
     shortType <- rsn[
         match(tolower(sourceType), rsn[["repository"]]), "stat.url"
     ]
-
+    version <- c("release", "devel")
     templates <- c(
         paste0("https://bioconductor.org/packages/{{package}}"),
         paste0(.SHIELDS_URL, version, "/{{shortType}}/{{package}}.svg"),
@@ -87,6 +92,7 @@ renderDoc <- function(email) {
     tableTemplate <- c(
         "---",
         "title: Bioconductor Packages",
+        "output: html_fragment",
         "---",
         "| Name | Bioc-release | Bioc-devel |",
         "|:-----:|:-----:|:-----:|",
@@ -102,9 +108,8 @@ renderDoc <- function(email) {
         data = list(packages = datalist)
     )
     mdfile <- tempfile(fileext = ".md")
-    outhtml <- tempfile(fileext = ".html")
     writeLines(text = rtext, con = mdfile)
-    rmarkdown::render(input = mdfile, output_file = outhtml)
+    rmarkdown::render(input = mdfile, output_file = file)
 }
 
 .build_html_link <- function(.data, shieldCol, resultCol, version) {

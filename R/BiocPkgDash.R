@@ -14,6 +14,10 @@ BiocPkgDash <- function(...) {
                 label = "Submit",
                 class = "btn-primary"
             ),
+            downloadButton(
+                outputId = ns("btnSend"),
+                label = "Download HTML"
+            ),
             DT::dataTableOutput(ns("dash_out"))
         )
     }
@@ -39,6 +43,16 @@ BiocPkgDash <- function(...) {
                         )
                     )
                 })
+                output$btnSend <- downloadHandler(
+                    filename = function() {
+                        em <- gsub("@", "_at_", emailValue())
+                        em <- gsub("\\.", "_dot_", em)
+                        paste0(em, ".html")
+                    },
+                    content = function(file) {
+                        renderDoc(email = emailValue(), file = file)
+                    }
+                )
             }
         )
     }
