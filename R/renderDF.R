@@ -16,36 +16,47 @@ renderDF <- function(email) {
 }
 
 .SHIELDS_URL <- "http://bioconductor.org/shields/build/"
+.CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
+
+.build_urls_temp <- function(packages, shortType, templates) {
+    .data <- data.frame(
+        package = packages,
+        shortType = shortType
+    )
+    result <- lapply(templates, function(template, tdata) {
+        apply(tdata, 1L, function(x) {
+            whisker::whisker.render(
+                data = x,
+                template = template
+            )
+        })
+    }, tdata = .data)
+    cbind.data.frame(package = .data[["package"]], result)
+}
 
 renderDoc <- function(email) {
     maindf <- biocMaintained(main = email)
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
     rsn <- BiocPkgTools:::repo_short_names
-    badgeKey <- rsn[match(tolower(sourceType), rsn[["repository"]]), "stat.url"]
-    rshields <- paste0(
-        .SHIELDS_URL, "release/", badgeKey, "/", maindf[["Package"]], ".svg"
+    shortType <- rsn[
+        match(tolower(sourceType), rsn[["repository"]]), "stat.url"
+    ]
+
+    templates <- c(
+        paste0("https://bioconductor.org/packages/{{package}}"),
+        paste0(.SHIELDS_URL, version, "/{{shortType}}/{{package}}.svg"),
+        paste0(
+            .CHECK_RESULTS_URL, version, "/{{shortType}}-LATEST/{{package}}"
+        )
     )
-    dshields <- paste0(
-        .SHIELDS_URL, "devel/", badgeKey, "/", maindf[["Package"]], ".svg"
+    names(templates) <- c("pkgurl", "rshield", "dshield", "rresult", "dresult")
+    urldf <- .build_urls_temp(
+        packages = maindf[["Package"]],
+        shortType = shortType,
+        templates = templates
     )
-    rresults <- paste0(
-        "http://bioconductor.org/checkResults/release/",
-        badgeKey, "-LATEST/", maindf[["Package"]]
-    )
-    dresults <- paste0(
-        "http://bioconductor.org/checkResults/devel/",
-        badgeKey, "-LATEST/", maindf[["Package"]]
-    )
-    mdf <- cbind.data.frame(
-        maindf,
-        pkgurl =
-            paste0("https://bioconductor.org/packages/", maindf[["Package"]]),
-        rshield = rshields,
-        dshield = dshields,
-        rresult = rresults,
-        dresult = dresults
-    )
-    datalist <- unname(split(mdf, mdf[["Package"]]))
+
+    datalist <- unname(split(urldf, urldf[["package"]]))
     tableTemplate <- c(
         "---",
         "title: Bioconductor Packages",
@@ -53,9 +64,9 @@ renderDoc <- function(email) {
         "| Name | Bioc-release | Bioc-devel |",
         "|:-----:|:-----:|:-----:|",
         "{{#packages}}",
-        paste0("| [{{{Package}}}]({{{pkgurl}}}) |",
-            " [![Bioconductor-release Build Status]({{{rshield}}})]({{rresult}}) |",
-            " [![Bioconductor-devel Build Status]({{{dshield}}})]({{dresult}}) |"
+        paste0("| [{{{package}}}]({{{pkgurl}}}) |",
+            " [![Bioconductor-release Build Status]({{{rshield}}})]({{{rresult}}}) |",
+            " [![Bioconductor-devel Build Status]({{{dshield}}})]({{{dresult}}}) |"
         ),
         "{{/packages}}"
     )
