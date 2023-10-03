@@ -6,7 +6,7 @@ BiocPkgDash <- function(...) {
         tagList(
             textInput(
                 inputId = ns("email"),
-                label = "Maintainer E-mail",
+                label = "Enter maintainer e-mail",
                 placeholder = "maintainer@bioconductor.org"
             ),
             actionButton(
