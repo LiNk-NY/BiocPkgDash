@@ -1,0 +1,127 @@
+---
+title: "Bioconductor Package Dashboard"
+format:
+  dashboard:
+    orientation: columns
+logo: https://bioconductor.org/images/logo_bioconductor.gif
+theme: minty
+server: shiny
+---
+
+```{r}
+#| context: setup
+library(BiocPkgDash)
+```
+
+# {.sidebar}
+
+```{r}
+textInput(
+    inputId = "email",
+    label = "Enter maintainer e-mail",
+    placeholder = "maintainer@bioconductor.org"
+)
+actionButton(
+    inputId = "submit",
+    label = "Submit",
+    class = "btn-primary"
+)
+```
+
+-------------------------------------------------------------------------------
+
+Download the badge wall as an HTML fragment for your website:
+
+```{r}
+## downloadButton currently not working
+## https://github.com/quarto-dev/quarto-cli/issues/999
+downloadLink(
+    outputId = "btnSend",
+    label = "Download HTML"
+)
+```
+
+```{r}
+#| label: all-values
+#| results: hide
+
+pkgs <- BiocPkgTools::biocMaintained('maintainer@bioconductor.org')
+tot_pkgs <- length(unique(pkgs[["Package"]]))
+
+dl_month <- BiocPkgTools::pkgDownloadStats("GenomicRanges")
+total_dl <- sum(dl_month[["Nb_of_distinct_IPs"]])
+```
+
+# Summary
+
+## Column {width="80%"}
+
+```{r}
+#| title: Wall of Badges
+DT::dataTableOutput("dash_out")
+```
+
+```{r}
+#| context: server
+emailValue <- reactiveVal("maintainer@bioconductor.org")
+observeEvent(input$submit, {
+    emailValue(input[["email"]])
+})
+
+output$dash_out <- DT::renderDataTable({
+    DT::datatable(
+        BiocPkgDash:::renderDF( email = emailValue() ),
+        escape = FALSE,
+        rownames = FALSE,
+        options = list(
+            dom = "ftp",
+            pageLength = 20,
+            lengthChange = FALSE,
+            paging = TRUE
+        )
+    )
+})
+output$btnSend <- downloadHandler(
+    filename = function() {
+        em <- gsub("@", "_at_", emailValue())
+        em <- gsub("\\.", "_dot_", em)
+        paste0(em, ".html")
+    },
+    content = function(file) {
+        BiocPkgDash:::renderDoc(email = emailValue(), file = file)
+    }
+)
+```
+
+## Column {width="20%"}
+
+```{r}
+#| component: valuebox
+#| title: Total Packages
+
+list(
+    color = "primary",
+    value = tot_pkgs
+)
+```
+
+```{r}
+#| component: valuebox
+#| title: Total Downloads of Genomic Ranges
+
+list(
+    color = "secondary",
+    value = total_dl
+)
+```
+
+```{r}
+#| component: valuebox
+#| title: Total No. of Dependencies
+
+list(
+    color = "warning",
+    value = total_dl
+)
+```
+
