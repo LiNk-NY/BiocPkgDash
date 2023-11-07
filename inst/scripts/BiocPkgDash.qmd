@@ -41,17 +41,6 @@ downloadLink(
 )
 ```
 
-```{r}
-#| label: all-values
-#| results: hide
-
-pkgs <- BiocPkgTools::biocMaintained('maintainer@bioconductor.org')
-tot_pkgs <- length(unique(pkgs[["Package"]]))
-
-dl_month <- BiocPkgTools::pkgDownloadStats("GenomicRanges")
-total_dl <- sum(dl_month[["Nb_of_distinct_IPs"]])
-```
-
 # Summary
 
 ## Column {width="80%"}
@@ -96,6 +85,30 @@ output$btnSend <- downloadHandler(
 ## Column {width="20%"}
 
 ```{r}
+#| label: all-values
+#| results: hide
+
+## use placeholder email for now
+pkgs <- BiocPkgTools::biocMaintained(
+    main = "maintainer@bioconductor\\.org",
+    pkgType = c("software", "data-experiment", "workflow")
+)
+tot_pkgs <- length(unique(pkgs[["Package"]]))
+
+## use placeholder package for now
+dl_month <- BiocPkgTools::pkgDownloadStats("GenomicRanges")
+total_dl <- prettyNum(
+    sum(dl_month[["Nb_of_distinct_IPs"]]),
+    big.mark = ",",
+    scientific = FALSE
+)
+
+## use placeholder package for now
+deps <- BiocPkgTools::pkgBiocDeps("GenomicRanges", which = "all")
+total_deps <- length(unlist(deps))
+```
+
+```{r}
 #| component: valuebox
 #| title: Total Packages
 
@@ -107,7 +120,7 @@ list(
 
 ```{r}
 #| component: valuebox
-#| title: Total Downloads of Genomic Ranges
+#| title: Total Downloads of GenomicRanges
 
 list(
     color = "secondary",
@@ -121,7 +134,7 @@ list(
 
 list(
     color = "warning",
-    value = total_dl
+    value = total_deps
 )
 ```
 
