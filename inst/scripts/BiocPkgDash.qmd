@@ -33,12 +33,16 @@ actionButton(
 Download the badge wall as an HTML fragment for your website:
 
 ```{r}
+#| output: asis
+
 ## downloadButton currently not working
 ## https://github.com/quarto-dev/quarto-cli/issues/999
-downloadLink(
+## using workaround
+## https://github.com/rstudio/shiny/issues/2392#issuecomment-484097398
+(downloadButton(
     outputId = "btnSend",
     label = "Download HTML"
-)
+))
 ```
 
 # Summary
