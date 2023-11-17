@@ -11,6 +11,7 @@ Description: The package interactively renders an HTML table of packages
 Depends: shiny
 Imports:
   BiocPkgTools (>= 1.19.9),
+  BiocManager,
   dplyr,
   DT,
   ggplot2,

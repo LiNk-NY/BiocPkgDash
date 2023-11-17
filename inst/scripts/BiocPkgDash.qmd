@@ -143,7 +143,10 @@ observeEvent(input$submit, {
 
 output$dash_out <- DT::renderDataTable({
     DT::datatable(
-        BiocPkgDash:::renderDF( email = emailValue() ),
+        BiocPkgDash:::renderDF(
+            email = emailValue(),
+            version = input$biocver
+        ),
         escape = FALSE,
         rownames = FALSE,
         options = list(
@@ -162,13 +165,17 @@ output$btnSend <- downloadHandler(
         paste0(em, ".html")
     },
     content = function(file) {
-        BiocPkgDash:::renderDoc(email = emailValue(), file = file)
+        BiocPkgDash:::renderDoc(
+            email = emailValue(), version = input$biocver, file = file
+        )
     }
 )
 
 output$dash_data <- DT::renderDataTable({
     DT::datatable(
-        BiocPkgDash:::renderMaintained( email = emailValue() )[,
+        BiocPkgDash:::renderMaintained(
+            email = emailValue(), version = input$biocver
+        )[,
             c(
                 "Package", "Version", "License", "NeedsCompilation", "Title",
                 "hasREADME", "hasNEWS", "hasINSTALL", "hasLICENSE",
@@ -186,7 +193,8 @@ output$dash_data <- DT::renderDataTable({
 
 output$pkgStatus <- plotly::renderPlotly(
     BiocPkgDash::pkgStatusPlot(
-      main = emailValue()
+        main = emailValue(),
+        version = input$biocver
     )
 )
 ```

@@ -1,15 +1,18 @@
 .SHIELDS_URL <- "http://bioconductor.org/shields/build/"
 .CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
 
-renderMaintained <- function(email) {
+renderMaintained <- function(email, version) {
     ## annotation badges not supported
     biocMaintained(
-        main = email, pkgType = c("software", "data-experiment", "workflows")
+        main = email,
+        version = version,
+        pkgType = c("software", "data-experiment", "workflows")
     )
 }
 
-renderDF <- function(email) {
-    maindf <- renderMaintained(email)
+renderDF <- function(email, version) {
+    version <- BiocManager:::.version_bioc(type = version)
+    maindf <- renderMaintained(email = email, version = version)
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
     sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
     sourceType <- gsub("ExperimentData", "data-experiment", sourceType)
@@ -65,9 +68,12 @@ renderDF <- function(email) {
     cbind.data.frame(package = .data[["package"]], result)
 }
 
-renderDoc <- function(email, file) {
+renderDoc <- function(email, version, file) {
+    version <- BiocManager:::.version_bioc(type = version)
     maindf <- biocMaintained(
-        main = email, pkgType = c("software", "data-experiment", "workflows")
+        main = email,
+        version = version,
+        pkgType = c("software", "data-experiment", "workflows")
     )
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
     sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
