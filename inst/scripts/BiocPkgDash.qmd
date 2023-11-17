@@ -16,6 +16,12 @@ library(BiocPkgDash)
 # {.sidebar}
 
 ```{r}
+radioButtons(
+    inputId = "biocver",
+    label = "Bioconductor version:",
+    choices = c("release", "devel"),
+    selected = "release"
+)
 textInput(
     inputId = "email",
     label = "Enter maintainer e-mail",
@@ -110,3 +116,77 @@ list(
 )
 ```
 
+# Status
+
+## Column {width="80%"}
+
+```{r}
+#| title: Package Status Plot
+plotly::plotlyOutput("pkgStatus")
+```
+
+# Data
+
+## Column {height="80%"}
+
+```{r}
+#| title: Packages Maintained
+DT::dataTableOutput("dash_data")
+```
+
+```{r}
+#| context: server
+emailValue <- reactiveVal("maintainer@bioconductor.org")
+observeEvent(input$submit, {
+    emailValue(input[["email"]])
+})
+
+output$dash_out <- DT::renderDataTable({
+    DT::datatable(
+        BiocPkgDash:::renderDF( email = emailValue() ),
+        escape = FALSE,
+        rownames = FALSE,
+        options = list(
+            dom = "ftp",
+            pageLength = 20,
+            lengthChange = FALSE,
+            paging = TRUE
+        )
+    )
+})
+
+output$btnSend <- downloadHandler(
+    filename = function() {
+        em <- gsub("@", "_at_", emailValue())
+        em <- gsub("\\.", "_dot_", em)
+        paste0(em, ".html")
+    },
+    content = function(file) {
+        BiocPkgDash:::renderDoc(email = emailValue(), file = file)
+    }
+)
+
+output$dash_data <- DT::renderDataTable({
+    DT::datatable(
+        BiocPkgDash:::renderMaintained( email = emailValue() )[,
+            c(
+                "Package", "Version", "License", "NeedsCompilation", "Title",
+                "hasREADME", "hasNEWS", "hasINSTALL", "hasLICENSE",
+                "dependencyCount"
+            )
+        ],
+        rownames = FALSE,
+        options = list(
+            dom = "ftp",
+            pageLength = 20,
+            paging = TRUE
+        )
+    )
+})
+
+output$pkgStatus <- plotly::renderPlotly(
+    BiocPkgDash::pkgStatusPlot(
+      main = emailValue()
+    )
+)
+```
