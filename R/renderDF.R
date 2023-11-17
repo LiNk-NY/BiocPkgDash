@@ -1,11 +1,15 @@
 .SHIELDS_URL <- "http://bioconductor.org/shields/build/"
 .CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
 
-renderDF <- function(email) {
+renderMaintained <- function(email) {
     ## annotation badges not supported
-    maindf <- biocMaintained(
+    biocMaintained(
         main = email, pkgType = c("software", "data-experiment", "workflows")
     )
+}
+
+renderDF <- function(email) {
+    maindf <- renderMaintained(email)
     sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
     sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
     sourceType <- gsub("ExperimentData", "data-experiment", sourceType)

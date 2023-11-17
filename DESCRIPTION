@@ -11,7 +11,10 @@ Description: The package interactively renders an HTML table of packages
 Depends: shiny
 Imports:
   BiocPkgTools (>= 1.19.9),
-  DT
+  dplyr,
+  DT,
+  ggplot2,
+  plotly
 License: Artistic-2.0
 Encoding: UTF-8
 URL: https://github.com/LiNk-NY/BiocPkgDash
