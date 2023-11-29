@@ -3,11 +3,13 @@
 
 renderMaintained <- function(email, version) {
     ## annotation badges not supported
-    biocMaintained(
+    maindf <- biocMaintained(
         main = email,
         version = version,
         pkgType = c("software", "data-experiment", "workflows")
     )
+    maindf[["dependencyCount"]] <- as.integer(maindf[["dependencyCount"]])
+    maindf
 }
 
 renderDF <- function(email, version) {
@@ -52,6 +54,7 @@ renderDF <- function(email, version) {
     )
 }
 
+#' @importFrom whisker whisker.render
 .build_urls_temp <- function(packages, shortType, templates) {
     .data <- data.frame(
         package = packages,

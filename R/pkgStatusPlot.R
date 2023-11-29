@@ -26,7 +26,7 @@
 #' @importFrom BiocPkgTools biocMaintained
 #' @importFrom ggplot2 ggplot aes geom_col facet_grid coord_flip
 #'   scale_fill_manual ggtitle theme element_blank
-#' @importFrom dplyr full_join mutate count
+#' @importFrom dplyr full_join mutate count .data
 #' @importFrom plotly ggplotly
 #'
 #' @examples
@@ -85,22 +85,26 @@ pkgStatusPlot <-
     statusPkgs <- full_join(
         statusPkgs,
         count(
-            statusPkgs, Builder, Stage, Status
+            statusPkgs, .data[["Builder"]], .data[["Stage"]], .data[["Status"]]
         ),
         by = c("Builder", "Stage", "Status")
     )
     statusPkgs <- mutate(statusPkgs, Packages = 1)
 
-    p <- ggplot(statusPkgs, aes(x = Builder, y = Packages, label = Package, tooltip = n)) +
-        geom_col(aes(fill = Status)) +
-        facet_grid(. ~  Stage) +
-        coord_flip() +
-        scale_fill_manual(
-            values = setNames(
-                c('darkgreen', 'darkorange', 'darkred', 'purple', 'black'),
-                .BIOC_PKG_STATUSES
+    cat_colors <- c('darkgreen', 'darkorange', 'darkred', 'purple', 'black')
+    names(cat_colors) <- .BIOC_PKG_STATUSES
+
+    p <- ggplot(
+            statusPkgs,
+            aes(
+                x = .data[["Builder"]], y = .data[["Packages"]],
+                label = .data[["Package"]], tooltip = .data[["n"]]
             )
         ) +
+        geom_col(aes(fill = .data[["Status"]])) +
+        facet_grid(. ~  .data[["Stage"]]) +
+        coord_flip() +
+        scale_fill_manual(values = cat_colors) +
         ggtitle(paste0("Bioconductor version ", as.character(version))) +
         theme(
             axis.text.x = element_blank()

@@ -2,9 +2,12 @@ Package: BiocPkgDash
 Type: Package
 Title: An interactive Shiny dashboard for Bioconductor package maintainers
 Version: 0.99.1
-Authors@R: person(
-    "Marcel", "Ramos", , "marcel.ramosperez@roswellpark.org", "cre",
+Authors@R: c(
+  person(
+    "Marcel", "Ramos", , "marcel.ramosperez@roswellpark.org", c("aut", "cre"),
     c(ORCID = "0000-0002-3242-0582")
+  ),
+  person("Vincent", "Carey", , "stvjc@channing.harvard.edu", "aut")
   )
 Description: The package interactively renders an HTML table of packages
   associated with the given emails.
@@ -15,7 +18,8 @@ Imports:
   dplyr,
   DT,
   ggplot2,
-  plotly
+  plotly,
+  whisker
 License: Artistic-2.0
 Encoding: UTF-8
 URL: https://github.com/LiNk-NY/BiocPkgDash
