@@ -12,8 +12,39 @@ pkgStatusPlot(
   pkgType = c("software", "data-experiment", "workflows", "data-annotation")
 )
 }
+\arguments{
+\item{version}{character(1) the character version number
+as used to access the online build report. For
+example, "3.14". The default is the "current version"
+as given by \code{BiocManager::version()}. Note
+that this is a character vector of length one and not a number.}
+
+\item{main}{character(1) The regex for searching through the Maintainer
+column as obtained from \code{biocPkgList()}.}
+
+\item{status}{`character()` A vector of `INSTALL`, `build` and `check`
+statuses to include in the plot. These values are obtained from the
+`result` column in `BiocPkgTools::biocBuildReport()`. The default is all:
+`c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped")`.}
+
+\item{stage}{`character()` A vector of the Bioconductor Build System (BBS)
+stages to include in the plot. These values are obtained from the `stage`
+`BiocPkgTools::biocBuildReport()`. The default is all stages:
+`c("install", "buildsrc", "checksrc", "buildbin")`.}
+
+\item{pkgType}{character(1) All or one of 'software', 'data-experiment',
+'workflows', or 'data-annotation' (defaults to all types)}
+}
 \description{
-A Summary Plot for Package Statuses
+This function generates a stacked bar plot of package statuses for
+a given Bioconductor version and email combination. It is mainly used
+for the Bioconductor Package Dashboard.
+}
+\details{
+Note that binary build stages for the Linux builders are not
+  included in the plot. This is because the binaries are built on GitHub
+  Actions and their result are not included in the Bioconductor Build System
+  (BBS) database.
 }
 \examples{
 pkgStatusPlot()

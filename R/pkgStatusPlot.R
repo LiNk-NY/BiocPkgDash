@@ -1,9 +1,29 @@
 .BIOC_PKG_STATUSES <- c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped")
 
-#' @title A Summary Plot for Package Statuses
+#' A Summary Plot for Package Statuses
+#'
+#' This function generates a stacked bar plot of package statuses for
+#' a given Bioconductor version and email combination. It is mainly used
+#' for the Bioconductor Package Dashboard.
+#'
+#' @details Note that binary build stages for the Linux builders are not
+#'   included in the plot. This is because the binaries are built on GitHub
+#'   Actions and their result are not included in the Bioconductor Build System
+#'   (BBS) database.
+#'
+#' @inheritParams BiocPkgTools::biocMaintained
+#'
+#' @param status `character()` A vector of `INSTALL`, `build` and `check`
+#'   statuses to include in the plot. These values are obtained from the
+#'   `result` column in `BiocPkgTools::biocBuildReport()`. The default is all:
+#'   `c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped")`.
+#'
+#' @param stage `character()` A vector of the Bioconductor Build System (BBS)
+#'   stages to include in the plot. These values are obtained from the `stage`
+#'   `BiocPkgTools::biocBuildReport()`. The default is all stages:
+#'   `c("install", "buildsrc", "checksrc", "buildbin")`.
 #'
 #' @importFrom BiocPkgTools biocMaintained
-#'
 #' @importFrom ggplot2 ggplot aes geom_col facet_grid coord_flip
 #'   scale_fill_manual ggtitle theme element_blank
 #' @importFrom dplyr full_join mutate count
