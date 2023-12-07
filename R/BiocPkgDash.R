@@ -34,11 +34,36 @@ BiocPkgDash <- function(...) {
                 h1(id = "big-heading", "Bioconductor Package Dashboard")
             )
         ),
-        emailField("email1")
+        sidebarLayout(
+            sidebarPanel(
+                emailUI("email1"),
+                biocverUI("biocver1"),
+                downloadUI("download1")
+            ),
+            tabsetPanel(
+                tabPanel(
+                    "Badges",
+                    badgesUI("badges1")
+                ),
+                tabPanel(
+                    "Status",
+                    statusUI("status1")
+                ),
+                tabPanel(
+                    "Data",
+                    dataUI("data1")
+                )
+            )
+        )
     )
 
     server <- function(input, output, session) {
-        emailServer("email1")
+        email <- emailServer("email1")
+        biocver <- biocverServer("biocver1")
+        downloadServer("download1", email, biocver)
+        badgesServer("badges1", email, biocver)
+        statusServer("status1", email, biocver)
+        dataServer("data1", email, biocver)
     }
 
     shinyApp(ui, server)
