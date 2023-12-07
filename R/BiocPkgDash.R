@@ -36,23 +36,34 @@ BiocPkgDash <- function(...) {
         ),
         sidebarLayout(
             sidebarPanel(
-                emailUI("email1"),
                 biocverUI("biocver1"),
-                downloadUI("download1")
+                emailUI("email1"),
+                hr(),
+                HTML("Download the badge wall as an HTML fragment:"),
+                downloadUI("download1"),
+                width = 2
             ),
-            tabsetPanel(
-                tabPanel(
-                    "Badges",
-                    badgesUI("badges1")
+            mainPanel(
+                tabsetPanel(
+                    tabPanel(
+                        "Badges",
+                        badgesUI("badges1")
+                    ),
+                    tabPanel(
+                        "Status",
+                        statusUI("status1")
+                    ),
+                    tabPanel(
+                        "Data",
+                        dataUI("data1")
+                    ),
+                    tabPanel(
+                        "About",
+                        aboutPanel(),
+                        value = "about"
+                    )
                 ),
-                tabPanel(
-                    "Status",
-                    statusUI("status1")
-                ),
-                tabPanel(
-                    "Data",
-                    dataUI("data1")
-                )
+                width = 10
             )
         )
     )
@@ -64,6 +75,12 @@ BiocPkgDash <- function(...) {
         badgesServer("badges1", email, biocver)
         statusServer("status1", email, biocver)
         dataServer("data1", email, biocver)
+        output$sessioninfo <- renderPrint({
+            if (requireNamespace("sessioninfo", quietly = TRUE))
+                utils::capture.output(sessioninfo::session_info())
+            else
+                utils::capture.output(utils::sessionInfo())
+        })
     }
 
     shinyApp(ui, server)
