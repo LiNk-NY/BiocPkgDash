@@ -15,6 +15,7 @@ Depends: shiny
 Imports:
   BiocPkgTools (>= 1.19.9),
   BiocManager,
+  bslib,
   dplyr,
   DT,
   ggplot2,
