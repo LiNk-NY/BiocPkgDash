@@ -122,7 +122,7 @@ list(
 
 ```{r}
 #| title: Package Status Plot
-plotly::plotlyOutput(status_out)
+plotly::plotlyOutput("status_out")
 ```
 
 # Data
