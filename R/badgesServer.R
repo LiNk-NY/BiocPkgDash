@@ -4,7 +4,7 @@ badgesServer <- function(id, email, biocver) {
         function(input, output, session) {
             output$badge_out <- DT::renderDataTable({
                 DT::datatable(
-                    BiocPkgDash:::renderDF(
+                    renderDF(
                         email = email(),
                         version = biocver()
                     ),
