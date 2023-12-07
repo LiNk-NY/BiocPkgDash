@@ -23,7 +23,7 @@
 #' @export
 BiocPkgDash <- function(...) {
     ui <- fluidPage(
-        theme = bs_theme(bootswatch = "minty"),
+        theme = bslib::bs_theme(bootswatch = "minty"),
         titlePanel(
             windowTitle = "BiocPkgDash",
             title = div(
