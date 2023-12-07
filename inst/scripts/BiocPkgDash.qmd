@@ -57,7 +57,7 @@ Download the badge wall as an HTML fragment for your website:
 
 ```{r}
 #| title: Wall of Badges
-DT::dataTableOutput("dash_out")
+DT::dataTableOutput("badge_out")
 ```
 
 ## Column {width="20%"}
@@ -122,7 +122,7 @@ list(
 
 ```{r}
 #| title: Package Status Plot
-plotly::plotlyOutput("pkgStatus")
+plotly::plotlyOutput(status_out)
 ```
 
 # Data
@@ -131,7 +131,7 @@ plotly::plotlyOutput("pkgStatus")
 
 ```{r}
 #| title: Packages Maintained
-DT::dataTableOutput("dash_data")
+DT::dataTableOutput("data_out")
 ```
 
 ```{r}
@@ -141,7 +141,7 @@ observeEvent(input$submit, {
     emailValue(input[["email"]])
 })
 
-output$dash_out <- DT::renderDataTable({
+output$badge_out <- DT::renderDataTable({
     DT::datatable(
         BiocPkgDash:::renderDF(
             email = emailValue(),
@@ -171,7 +171,7 @@ output$btnSend <- downloadHandler(
     }
 )
 
-output$dash_data <- DT::renderDataTable({
+output$data_out <- DT::renderDataTable({
     DT::datatable(
         BiocPkgDash:::renderMaintained(
             email = emailValue(), version = input$biocver
@@ -191,7 +191,7 @@ output$dash_data <- DT::renderDataTable({
     )
 })
 
-output$pkgStatus <- plotly::renderPlotly(
+output$status_out <- plotly::renderPlotly(
     BiocPkgDash::pkgStatusPlot(
         main = emailValue(),
         version = input$biocver
