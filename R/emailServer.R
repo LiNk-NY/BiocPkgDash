@@ -10,15 +10,21 @@ emailServer <- function(id) {
 
             output$dash_out <- DT::renderDataTable({
                 DT::datatable(
-                    renderDF( email = emailValue() ),
+                    BiocPkgDash:::renderDF(
+                        email = emailValue(),
+                        version = input[["biocver"]]
+                    ),
                     escape = FALSE,
                     rownames = FALSE,
                     options = list(
-                        pageLength = 100,
-                        lengthChange = FALSE
+                        dom = "ftp",
+                        pageLength = 20,
+                        lengthChange = FALSE,
+                        paging = TRUE
                     )
                 )
             })
+
             output$btnSend <- downloadHandler(
                 filename = function() {
                     em <- gsub("@", "_at_", emailValue())
@@ -26,8 +32,19 @@ emailServer <- function(id) {
                     paste0(em, ".html")
                 },
                 content = function(file) {
-                    renderDoc(email = emailValue(), file = file)
+                    BiocPkgDash:::renderDoc(
+                        email = emailValue(),
+                        version = input[["biocver"]],
+                        file = file
+                    )
                 }
+            )
+
+            output$pkgStatus <- plotly::renderPlotly(
+                BiocPkgDash::pkgStatusPlot(
+                    main = emailValue(),
+                    version = input$biocver
+                )
             )
         }
     )

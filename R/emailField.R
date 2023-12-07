@@ -1,6 +1,12 @@
 emailField <- function(id, label = "email") {
     ns <- NS(id)
     tagList(
+        radioButtons(
+            inputId = ns("biocver"),
+            label = "Bioconductor version:",
+            choices = c("release", "devel"),
+            selected = "release"
+        ),
         textInput(
             inputId = ns("email"),
             label = "Enter maintainer e-mail",
