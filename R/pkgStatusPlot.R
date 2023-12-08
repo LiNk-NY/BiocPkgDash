@@ -27,6 +27,7 @@
 #' @importFrom ggplot2 ggplot aes geom_col facet_grid coord_flip
 #'   scale_fill_manual ggtitle theme element_blank
 #' @importFrom dplyr full_join mutate count .data
+#' @importFrom tidyr complete
 #' @importFrom plotly ggplotly
 #'
 #' @examples
@@ -81,6 +82,9 @@ pkgStatusPlot <-
         statusPkgs[["Status"]],
         levels = .BIOC_PKG_STATUSES,
         ordered = TRUE
+    )
+    statusPkgs <- complete(
+        statusPkgs, .data[["Package"]], .data[["Builder"]], .data[["Stage"]]
     )
     statusPkgs <- full_join(
         statusPkgs,

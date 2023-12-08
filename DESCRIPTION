@@ -21,6 +21,7 @@ Imports:
   ggplot2,
   plotly,
   rmarkdown,
+  tidyr,
   utils,
   whisker
 Suggests:
