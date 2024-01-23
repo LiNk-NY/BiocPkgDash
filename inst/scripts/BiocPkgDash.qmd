@@ -134,6 +134,16 @@ plotly::plotlyOutput("status_out")
 DT::dataTableOutput("data_out")
 ```
 
+# Status Table
+
+## Column {height="80%"}
+
+```{r}
+#| title: Package Status Table
+DT::dataTableOutput("status_table")
+```
+
+
 ```{r}
 #| context: server
 emailValue <- reactiveVal("maintainer@bioconductor.org")
@@ -197,4 +207,22 @@ output$status_out <- plotly::renderPlotly(
         version = input$biocver
     )
 )
+
+output$status_table <- DT::renderDataTable({
+    DT::datatable(
+        BiocPkgDash::pkgStatusTable(
+            main = emailValue(),
+            version = input$biocver
+        ),
+        escape = FALSE,
+        rownames = FALSE,
+        options = list(
+            dom = "ftp",
+            pageLength = 20,
+            lengthChange = FALSE,
+            paging = TRUE
+        )
+    )
+})
+
 ```

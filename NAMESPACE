@@ -2,6 +2,7 @@
 
 export(BiocPkgDash)
 export(pkgStatusPlot)
+export(pkgStatusTable)
 import(shiny)
 importFrom(BiocPkgTools,biocMaintained)
 importFrom(dplyr,.data)
