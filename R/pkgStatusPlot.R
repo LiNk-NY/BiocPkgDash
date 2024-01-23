@@ -1,4 +1,4 @@
-.BIOC_PKG_STATUSES <- c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped")
+.BIOC_PKG_STATUSES <- c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped", "NA")
 
 #' A Summary Plot for Package Statuses
 #'
@@ -95,7 +95,8 @@ pkgStatusPlot <-
     )
     statusPkgs <- mutate(statusPkgs, Packages = 1)
 
-    cat_colors <- c('darkgreen', 'darkorange', 'darkred', 'purple', 'black')
+    cat_colors <-
+        c('darkgreen', 'darkorange', 'darkred', 'purple', 'black', 'grey')
     names(cat_colors) <- .BIOC_PKG_STATUSES
 
     p <- ggplot(

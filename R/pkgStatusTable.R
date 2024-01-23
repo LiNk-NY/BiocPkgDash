@@ -78,15 +78,21 @@ pkgStatusTable <-
     )
     glyphSuffix <- factor(
         statusPkgs$Status,
-        levels = c("ERROR", "WARNINGS", "TIMEOUT", "OK", "skipped", "question-sign"),
+        levels = c("ERROR", "WARNINGS", "TIMEOUT", "OK", "skipped", "NA"),
         labels = c(
-            "remove-circle", "warning-sign", "time",
-            "ok-circle", "minus-sign", "question-sign"
+            "x-circle", "exclamation-circle", "clock",
+            "check2-circle", "dash-circle", "question-circle"
         ),
         ordered = FALSE
     )
-    glyphSuffix [is.na(glyphSuffix )] <- "question-sign"
+    glyphSuffix[is.na(glyphSuffix )] <- "question-circle"
     statusPkgs <- dplyr::bind_cols(statusPkgs, glyphSuffix = glyphSuffix)
+    statusPkgs[["Status"]][is.na(statusPkgs[["Status"]])] <- "NA"
+    statusPkgs[["svgIcon"]] <- vapply(
+        statusPkgs[["glyphSuffix"]],
+        function(x) as.character(bsicons::bs_icon(x)),
+        character(1L)
+    )
 
     build_urls <- apply(
         statusPkgs,
@@ -116,7 +122,7 @@ pkgStatusTable <-
     )
     paste0(
         '<a href=', dQuote(builder_url), ' target="_blank">',
-        '<i class="glyphicon glyphicon-{{glyphSuffix}}">{{Status}}</i>',
+        '<span class="icon-status-{{Status}}">{{{svgIcon}}} {{Status}}</span>',
         '</a>'
     )
 }
