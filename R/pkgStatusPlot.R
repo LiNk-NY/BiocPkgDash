@@ -64,7 +64,7 @@ pkgStatusPlot <-
     )
     names(sdat) <- c("Package", "Builder", "Stage", "Status")
 
-    mainPkgs <- biocMaintained(
+    mainPkgs <- renderMaintained(
         version = version, main = main, pkgType = pkgType
     )
     lmain <- sdat[["Package"]] %in% mainPkgs[["Package"]]

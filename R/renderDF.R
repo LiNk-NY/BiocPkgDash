@@ -1,14 +1,16 @@
 .SHIELDS_URL <- "http://bioconductor.org/shields/build/"
 .CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
 
-renderMaintained <- function(email, version) {
+renderMaintained <- function(
+        email, version, pkgType = c("software", "data-experiment", "workflows")
+) {
     ## annotation badges not supported
     maindf <- biocMaintained(
-        main = email,
-        version = version,
-        pkgType = c("software", "data-experiment", "workflows")
+        main = email, version = version, pkgType = pkgType
     )
     maindf[["dependencyCount"]] <- as.integer(maindf[["dependencyCount"]])
+    if (!nrow(maindf))
+        stop("No packages found with maintainer: ", email)
     maindf
 }
 
@@ -73,7 +75,7 @@ renderDF <- function(email, version) {
 
 renderDoc <- function(email, version, file) {
     version <- BiocManager:::.version_bioc(type = version)
-    maindf <- biocMaintained(
+    maindf <- renderMaintained(
         main = email,
         version = version,
         pkgType = c("software", "data-experiment", "workflows")
