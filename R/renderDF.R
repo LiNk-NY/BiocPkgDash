@@ -76,7 +76,7 @@ renderDF <- function(email, version) {
 renderDoc <- function(email, version, file) {
     version <- BiocManager:::.version_bioc(type = version)
     maindf <- renderMaintained(
-        main = email,
+        email = email,
         version = version,
         pkgType = c("software", "data-experiment", "workflows")
     )

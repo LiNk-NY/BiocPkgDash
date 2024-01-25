@@ -65,7 +65,7 @@ pkgStatusPlot <-
     names(sdat) <- c("Package", "Builder", "Stage", "Status")
 
     mainPkgs <- renderMaintained(
-        version = version, main = main, pkgType = pkgType
+        version = version, email = main, pkgType = pkgType
     )
     lmain <- sdat[["Package"]] %in% mainPkgs[["Package"]]
     lstage <- sdat[["Stage"]] %in% stage
