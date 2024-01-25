@@ -32,7 +32,7 @@ pkgStatusTable <-
     names(sdat) <- c("Package", "Hostname", "Stage", "Status")
 
     mainPkgs <- renderMaintained(
-        version = version, main = main, pkgType = pkgType
+        version = version, email = main, pkgType = pkgType
     )
     avail_pkgs <- available.packages(repos = BiocManager::repositories())
     repo_urls <- avail_pkgs[
