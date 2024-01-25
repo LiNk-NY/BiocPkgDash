@@ -16,6 +16,7 @@ library(BiocPkgDash)
 # {.sidebar}
 
 ```{r}
+shinytoastr::useToastr()
 radioButtons(
     inputId = "biocver",
     label = "Bioconductor version:",
@@ -147,6 +148,20 @@ DT::dataTableOutput("status_table")
 ```{r}
 #| context: server
 emailValue <- reactiveVal("maintainer@bioconductor.org")
+
+main_data <- reactive({
+    tryCatch({
+        BiocPkgDash:::renderMaintained(
+            email = emailValue(),
+            version = input$biocver
+        )
+    }, error = function(e) {
+        shinytoastr::toastr_error(
+            conditionMessage(e), "Invalid e-mail address", timeOut = 3000
+        )
+    })
+})
+
 observeEvent(input$submit, {
     emailValue(input[["email"]])
 })
@@ -183,15 +198,11 @@ output$btnSend <- downloadHandler(
 
 output$data_out <- DT::renderDataTable({
     DT::datatable(
-        BiocPkgDash:::renderMaintained(
-            email = emailValue(), version = input$biocver
-        )[,
-            c(
-                "Package", "Version", "License", "NeedsCompilation", "Title",
-                "hasREADME", "hasNEWS", "hasINSTALL", "hasLICENSE",
-                "dependencyCount"
-            )
-        ],
+        main_data()[, c(
+            "Package", "Version", "License", "NeedsCompilation", "Title",
+            "hasREADME", "hasNEWS", "hasINSTALL", "hasLICENSE",
+            "dependencyCount"
+        )],
         rownames = FALSE,
         options = list(
             dom = "ftp",
