@@ -9,7 +9,7 @@ downloadServer <- function(id, email, biocver) {
                     paste0(em, ".html")
                 },
                 content = function(file) {
-                    BiocPkgDash:::renderDoc(
+                    BiocPkgDash:::renderHTMLfrag(
                         email = email(),
                         version = biocver(),
                         file = file

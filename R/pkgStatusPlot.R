@@ -23,6 +23,10 @@
 #'   `BiocPkgTools::biocBuildReport()`. The default is all stages:
 #'   `c("install", "buildsrc", "checksrc", "buildbin")`.
 #'
+#' @param data `tibble()` / `data.frame()` A data frame of maintained packages.
+#'   This is used internally to avoid repeated calls to the
+#'   [BiocPkgTools::biocMaintained()] function.
+#'
 #' @importFrom BiocPkgTools biocMaintained
 #' @importFrom ggplot2 ggplot aes geom_col facet_grid coord_flip
 #'   scale_fill_manual ggtitle theme element_blank
@@ -42,7 +46,8 @@ pkgStatusPlot <-
         pkgType = c(
             "software", "data-experiment",
             "workflows", "data-annotation"
-        )
+        ),
+        data = NULL
     )
 {
     status <- match.arg(status, several.ok = TRUE)
@@ -52,21 +57,18 @@ pkgStatusPlot <-
     if (version %in% c("release", "devel"))
         version <- BiocManager:::.version_bioc(type = version)
 
-    build_status_db <- BiocPkgTools:::get_build_status_db_url(version)
-    status_file <- BiocPkgTools:::.cache_url_file(build_status_db)
-    dat <- readLines(status_file)
-    sdat <- strsplit(dat, "#|:\\s")
-    sdat <- do.call(
-        function(...) {
-            rbind.data.frame(..., row.names = NULL)
-        },
-        sdat
-    )
-    names(sdat) <- c("Package", "Builder", "Stage", "Status")
+    if (is.null(data)) {
+        mainPkgs <- renderMaintained(
+            version = version, email = main, pkgType = pkgType
+        )
+    } else {
+        mainPkgs <- data
+    }
 
-    mainPkgs <- renderMaintained(
-        version = version, email = main, pkgType = pkgType
-    )
+    sdat <-
+        BiocPkgTools::biocBuildStatusDB(version = version, pkgType = pkgType)
+    names(sdat) <- c("Package", "Hostname", "Stage", "Status")
+
     lmain <- sdat[["Package"]] %in% mainPkgs[["Package"]]
     lstage <- sdat[["Stage"]] %in% stage
     lstatus <- sdat[["Status"]] %in% status
@@ -84,14 +86,14 @@ pkgStatusPlot <-
         ordered = TRUE
     )
     statusPkgs <- complete(
-        statusPkgs, .data[["Package"]], .data[["Builder"]], .data[["Stage"]]
+        statusPkgs, .data[["Package"]], .data[["Hostname"]], .data[["Stage"]]
     )
     statusPkgs <- full_join(
         statusPkgs,
         count(
-            statusPkgs, .data[["Builder"]], .data[["Stage"]], .data[["Status"]]
+            statusPkgs, .data[["Hostname"]], .data[["Stage"]], .data[["Status"]]
         ),
-        by = c("Builder", "Stage", "Status")
+        by = c("Hostname", "Stage", "Status")
     )
     statusPkgs <- mutate(statusPkgs, Packages = 1)
 
@@ -102,7 +104,7 @@ pkgStatusPlot <-
     p <- ggplot(
             statusPkgs,
             aes(
-                x = .data[["Builder"]], y = .data[["Packages"]],
+                x = .data[["Hostname"]], y = .data[["Packages"]],
                 label = .data[["Package"]], tooltip = .data[["n"]]
             )
         ) +
@@ -112,7 +114,8 @@ pkgStatusPlot <-
         scale_fill_manual(values = cat_colors) +
         ggtitle(paste0("Bioconductor version ", as.character(version))) +
         theme(
-            axis.text.x = element_blank()
+            axis.text.x = element_blank(),
+            axis.ticks.x=element_blank()
         )
-    ggplotly(p, tooltip = c("label", "n", "Status", "Stage", "Builder"))
+    ggplotly(p, tooltip = c("label", "n", "Status", "Stage", "Hostname"))
 }

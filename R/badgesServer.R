@@ -4,9 +4,8 @@ badgesServer <- function(id, email, biocver) {
         function(input, output, session) {
             output$badge_out <- DT::renderDataTable({
                 DT::datatable(
-                    renderDF(
-                        email = email(),
-                        version = biocver()
+                    badgesDF(
+                        email = email()
                     ),
                     escape = FALSE,
                     rownames = FALSE,

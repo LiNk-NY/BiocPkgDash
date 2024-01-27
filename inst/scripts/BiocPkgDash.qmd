@@ -11,12 +11,12 @@ server: shiny
 ```{r}
 #| context: setup
 library(BiocPkgDash)
+library(shinytoastr)
 ```
 
 # {.sidebar}
 
 ```{r}
-shinytoastr::useToastr()
 radioButtons(
     inputId = "biocver",
     label = "Bioconductor version:",
@@ -168,9 +168,8 @@ observeEvent(input$submit, {
 
 output$badge_out <- DT::renderDataTable({
     DT::datatable(
-        BiocPkgDash:::renderDF(
-            email = emailValue(),
-            version = input$biocver
+        BiocPkgDash:::badgesDF(
+            data = main_data()
         ),
         escape = FALSE,
         rownames = FALSE,
@@ -190,8 +189,8 @@ output$btnSend <- downloadHandler(
         paste0(em, ".html")
     },
     content = function(file) {
-        BiocPkgDash:::renderDoc(
-            email = emailValue(), version = input$biocver, file = file
+        BiocPkgDash:::renderHTMLfrag(
+            file = file, data = main_data()
         )
     }
 )
@@ -214,16 +213,16 @@ output$data_out <- DT::renderDataTable({
 
 output$status_out <- plotly::renderPlotly(
     BiocPkgDash::pkgStatusPlot(
-        main = emailValue(),
-        version = input$biocver
+        version = input$biocver,
+        data = main_data()
     )
 )
 
 output$status_table <- DT::renderDataTable({
     DT::datatable(
         BiocPkgDash::pkgStatusTable(
-            main = emailValue(),
-            version = input$biocver
+            version = input$biocver,
+            data = main_data()
         ),
         escape = FALSE,
         rownames = FALSE,

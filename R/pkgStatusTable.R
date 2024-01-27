@@ -1,4 +1,64 @@
+.get_pkgType_from_URL <-
+    function(packages, version)
+{
+    repos <- BiocManager:::.repositories_bioc(version)
+    pkgsdb <- available.packages(repos = repos)
+    repo_urls <- pkgsdb[rownames(pkgsdb) %in% packages, "Repository"]
+    tail_urls <- vapply(
+        strsplit(repo_urls, paste0(version, "/")), "[", character(1L), 2L
+    )
+    biocType <- gsub("/src/contrib", "", tail_urls)
+    unname(gsub("/", "-", biocType, fixed = TRUE))
+}
 
+.build_html_status <- function() {
+    builder_url <- paste0(
+        "https://bioconductor.org/checkResults/",
+        "{{version}}/{{pkgType}}-LATEST/{{Package}}/",
+        "{{Hostname}}-{{Stage}}.html"
+    )
+    paste0(
+        '<a href=', dQuote(builder_url), ' target="_blank">',
+        '<span class="icon-status-{{Status}}">{{{svgIcon}}} {{Status}}</span>',
+        '</a>'
+    )
+}
+
+#' Build a table of package build statuses
+#'
+#' @description This function builds a table of package build statuses for a
+#'  given Bioconductor version and email combination. It is mainly used for the
+#'  Bioconductor Package Dashboard.
+#'
+#' @details Note that binary build stages for the Linux builders are marked as
+#'   `skipped` in the table. This is because the binaries are built on GitHub
+#'   Actions and their result are not included in the Bioconductor Build System
+#'   (BBS) database. Provide the `data` argument to avoid recomputing the
+#'   list of maintained packages for a given email and Bioconductor version.
+#'   Annotation packages are not included in the table because they are not
+#'   built regularly by the BBS.
+#'
+#' @inheritParams BiocPkgTools::biocMaintained
+#'
+#' @param status `character()` The status of the builders to include in the
+#'   table. These values are obtained from the `result` column in
+#'   [BiocPkgTools::biocBuildReport()]. The default is all:
+#'   `c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped")`.
+#'
+#' @param stage `character()` A vector of the Bioconductor Build System (BBS)
+#'   stages to include in the plot. These values are obtained from the `stage`
+#'   [BiocPkgTools::biocBuildReport()]. The default is all stages:
+#'   `c("install", "buildsrc", "checksrc", "buildbin")`.
+#'
+#' @param pkgType `character()` A vector of package types to include in the
+#'   table. These values are passed to [BiocPkgTools::biocMaintained()].
+#'   The default is all:
+#'   `c("software", "data-experiment", "workflows", "data-annotation")`.
+#'
+#' @param data `tibble()` / `data.frame()` A data frame of maintained packages.
+#'   This is used internally to avoid repeated calls to the
+#'   [BiocPkgTools::biocMaintained()] function.
+#'
 #' @export
 pkgStatusTable <-
     function(
@@ -7,9 +67,9 @@ pkgStatusTable <-
         status = c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped"),
         stage = c("install", "buildsrc", "checksrc", "buildbin"),
         pkgType = c(
-            "software", "data-experiment",
-            "workflows", "data-annotation"
-        )
+            "software", "data-experiment", "workflows", "data-annotation"
+        ),
+        data = NULL
     )
 {
     status <- match.arg(status, several.ok = TRUE)
@@ -19,28 +79,19 @@ pkgStatusTable <-
     if (version %in% c("release", "devel"))
         version <- BiocManager:::.version_bioc(type = version)
 
-    build_status_db <- BiocPkgTools:::get_build_status_db_url(version)
-    status_file <- BiocPkgTools:::.cache_url_file(build_status_db)
-    dat <- readLines(status_file)
-    sdat <- strsplit(dat, "#|:\\s")
-    sdat <- do.call(
-        function(...) {
-            rbind.data.frame(..., row.names = NULL)
-        },
-        sdat
-    )
+    if (is.null(data)) {
+        mainPkgs <- renderMaintained(
+            version = version, email = main, pkgType = pkgType
+        )
+    } else {
+        mainPkgs <- data
+    }
+
+    biocType <- .get_pkgType_from_URL(mainPkgs[["Package"]], version)
+    mainPkgs <- dplyr::bind_cols(mainPkgs, pkgType = biocType)
+    sdat <-
+        BiocPkgTools::biocBuildStatusDB(version = version, pkgType = pkgType)
     names(sdat) <- c("Package", "Hostname", "Stage", "Status")
-
-    mainPkgs <- renderMaintained(
-        version = version, email = main, pkgType = pkgType
-    )
-    avail_pkgs <- available.packages(repos = BiocManager::repositories())
-    repo_urls <- avail_pkgs[
-        rownames(avail_pkgs) %in% mainPkgs[["Package"]], "Repository"
-    ]
-
-    pkgURL <- basename(gsub("/src/contrib", "", repo_urls))
-    mainPkgs <- dplyr::bind_cols(mainPkgs, pkgType = pkgURL)
 
     lmain <- sdat[["Package"]] %in% mainPkgs[["Package"]]
     lstage <- sdat[["Stage"]] %in% stage
@@ -69,7 +120,6 @@ pkgStatusTable <-
         mainPkgs[, c("Package", "pkgType")],
         by = c("Package" = "Package")
     )
-
     statusPkgs[["StageLabel"]] <- factor(
         statusPkgs[["Stage"]],
         levels = c("install", "buildsrc", "checksrc", "buildbin"),
@@ -77,7 +127,7 @@ pkgStatusTable <-
         ordered = TRUE
     )
     glyphSuffix <- factor(
-        statusPkgs$Status,
+        statusPkgs[["Status"]],
         levels = c("ERROR", "WARNINGS", "TIMEOUT", "OK", "skipped", "NA"),
         labels = c(
             "x-circle", "exclamation-circle", "clock",
@@ -114,15 +164,3 @@ pkgStatusTable <-
     )
 }
 
-.build_html_status <- function() {
-    builder_url <- paste0(
-        "https://bioconductor.org/checkResults/",
-        "{{version}}/{{pkgType}}-LATEST/{{Package}}/",
-        "{{Hostname}}-{{Stage}}.html"
-    )
-    paste0(
-        '<a href=', dQuote(builder_url), ' target="_blank">',
-        '<span class="icon-status-{{Status}}">{{{svgIcon}}} {{Status}}</span>',
-        '</a>'
-    )
-}

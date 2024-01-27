@@ -2,9 +2,12 @@
 .CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
 
 renderMaintained <- function(
-        email, version, pkgType = c("software", "data-experiment", "workflows")
+    email,
+    version,
+    pkgType = c("software", "data-experiment", "workflows", "data-annotation")
 ) {
     ## annotation badges not supported
+    pkgType <- pkgType[pkgType != "data-annotation"]
     maindf <- biocMaintained(
         main = email, version = version, pkgType = pkgType
     )
@@ -14,30 +17,27 @@ renderMaintained <- function(
     maindf
 }
 
-renderDF <- function(email, version) {
-    version <- BiocManager:::.version_bioc(type = version)
-    maindf <- renderMaintained(email = email, version = version)
-    sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
-    sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
-    sourceType <- gsub("ExperimentData", "data-experiment", sourceType)
-    sourceType <- gsub("Workflow", "workflows", sourceType)
-    rsn <- BiocPkgTools:::repo_short_names
-    shortType <- rsn[
-        match(tolower(sourceType), rsn[["repository"]]), "stat.url"
-    ]
+badgesDF <- function(email, data = NULL) {
+    version <- BiocManager:::.version_bioc(type = "devel")
+    if (is.null(data)) {
+        maindf <- renderMaintained(email = email, version = version)
+    } else {
+        maindf <- data
+    }
+    pkgType <- .get_pkgType_from_URL(maindf[["Package"]], version)
     version <- c("release", "devel")
 
     templates <- c(
-        paste0(.SHIELDS_URL, version, "/{{shortType}}/{{package}}.svg"),
+        paste0(.SHIELDS_URL, version, "/{{pkgType}}/{{package}}.svg"),
         paste0(
-            .CHECK_RESULTS_URL, version, "/{{shortType}}-LATEST/{{package}}"
+            .CHECK_RESULTS_URL, version, "/{{pkgType}}-LATEST/{{package}}"
         )
     )
     names(templates) <- c("rshield", "dshield", "rresult", "dresult")
 
     urldf <- .build_urls_temp(
         packages = maindf[["Package"]],
-        shortType = shortType,
+        pkgType = pkgType,
         templates = templates
     )
     rellink <- .build_html_link(
@@ -57,10 +57,10 @@ renderDF <- function(email, version) {
 }
 
 #' @importFrom whisker whisker.render
-.build_urls_temp <- function(packages, shortType, templates) {
+.build_urls_temp <- function(packages, pkgType, templates) {
     .data <- data.frame(
         package = packages,
-        shortType = shortType
+        pkgType = pkgType
     )
     result <- lapply(templates, function(template, tdata) {
         apply(tdata, 1L, function(x) {
@@ -73,33 +73,28 @@ renderDF <- function(email, version) {
     cbind.data.frame(package = .data[["package"]], result)
 }
 
-renderDoc <- function(email, version, file) {
-    version <- BiocManager:::.version_bioc(type = version)
-    maindf <- renderMaintained(
-        email = email,
-        version = version,
-        pkgType = c("software", "data-experiment", "workflows")
-    )
-    sourceType <- vapply(maindf[["biocViews"]], `[[`, character(1L), 1L)
-    sourceType <- gsub("AnnotationData", "data-annotation", sourceType)
-    sourceType <- gsub("ExperimentData", "data-experiment", sourceType)
-    sourceType <- gsub("Workflow", "workflows", sourceType)
-    rsn <- BiocPkgTools:::repo_short_names
-    shortType <- rsn[
-        match(tolower(sourceType), rsn[["repository"]]), "stat.url"
-    ]
+renderHTMLfrag <- function(email, file, data = NULL) {
+    version <- BiocManager:::.version_bioc(type = "devel")
+
+    if (is.null(data)) {
+        maindf <- renderMaintained(email = email, version = version)
+    } else {
+        maindf <- data
+    }
+    pkgType <- .get_pkgType_from_URL(maindf[["Package"]], version)
+
     version <- c("release", "devel")
     templates <- c(
         paste0("https://bioconductor.org/packages/{{package}}"),
-        paste0(.SHIELDS_URL, version, "/{{shortType}}/{{package}}.svg"),
+        paste0(.SHIELDS_URL, version, "/{{pkgType}}/{{package}}.svg"),
         paste0(
-            .CHECK_RESULTS_URL, version, "/{{shortType}}-LATEST/{{package}}"
+            .CHECK_RESULTS_URL, version, "/{{pkgType}}-LATEST/{{package}}"
         )
     )
     names(templates) <- c("pkgurl", "rshield", "dshield", "rresult", "dresult")
     urldf <- .build_urls_temp(
         packages = maindf[["Package"]],
-        shortType = shortType,
+        pkgType = pkgType,
         templates = templates
     )
 

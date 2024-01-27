@@ -9,7 +9,8 @@ pkgStatusPlot(
   main = "maintainer@bioconductor\\\\.org",
   status = c("OK", "WARNINGS", "ERROR", "TIMEOUT", "skipped"),
   stage = c("install", "buildsrc", "checksrc", "buildbin"),
-  pkgType = c("software", "data-experiment", "workflows", "data-annotation")
+  pkgType = c("software", "data-experiment", "workflows", "data-annotation"),
+  data = NULL
 )
 }
 \arguments{
@@ -32,8 +33,18 @@ stages to include in the plot. These values are obtained from the `stage`
 `BiocPkgTools::biocBuildReport()`. The default is all stages:
 `c("install", "buildsrc", "checksrc", "buildbin")`.}
 
-\item{pkgType}{character(1) All or one of 'software', 'data-experiment',
-'workflows', or 'data-annotation' (defaults to all types)}
+\item{pkgType}{\code{character(1)} The type of packages for which to get build
+status information for. Valid values are:
+\itemize{
+\item \code{software}: Software packages
+\item \code{data-experiment}: Experiment data packages
+\item \code{data-annotation}: Annotation data packages
+\item \code{workflows}: Workflow packages
+}}
+
+\item{data}{`tibble()` / `data.frame()` A data frame of maintained packages.
+This is used internally to avoid repeated calls to the
+[BiocPkgTools::biocMaintained()] function.}
 }
 \description{
 This function generates a stacked bar plot of package statuses for
