@@ -4,7 +4,7 @@ Title: An interactive Shiny dashboard for Bioconductor package maintainers
 Version: 0.99.5
 Authors@R: c(
   person(
-    "Marcel", "Ramos", , "marcel.ramosperez@roswellpark.org", c("aut", "cre"),
+    "Marcel", "Ramos", , "marcel.ramos@sph.cuny.edu", c("aut", "cre"),
     c(ORCID = "0000-0002-3242-0582")
   ),
   person("Vincent", "Carey", , "stvjc@channing.harvard.edu", "aut")
