@@ -35,6 +35,8 @@ badgesDF <- function(email, data = NULL) {
     )
     names(templates) <- c("rshield", "dshield", "rresult", "dresult")
 
+    ## adjust for missing package types
+    maindf <- maindf[match(names(pkgType), maindf[["Package"]]), ]
     urldf <- .build_urls_temp(
         packages = maindf[["Package"]],
         pkgType = pkgType,
@@ -92,6 +94,8 @@ renderHTMLfrag <- function(email, file, data = NULL) {
         )
     )
     names(templates) <- c("pkgurl", "rshield", "dshield", "rresult", "dresult")
+    ## adjust for missing package types
+    maindf <- maindf[match(names(pkgType), maindf[["Package"]]), ]
     urldf <- .build_urls_temp(
         packages = maindf[["Package"]],
         pkgType = pkgType,

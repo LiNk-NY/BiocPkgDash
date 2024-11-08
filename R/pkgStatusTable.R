@@ -8,7 +8,13 @@
         strsplit(repo_urls, paste0(version, "/")), "[", character(1L), 2L
     )
     biocType <- gsub("/src/contrib", "", tail_urls)
-    unname(gsub("/", "-", biocType, fixed = TRUE))
+    pkgsnot <- !packages %in% names(biocType)
+    npkgs <- paste(packages[pkgsnot], collapse = ", ")
+    if (any(pkgsnot))
+        warning(
+            "Bioconductor package category not found for: ", npkgs
+        )
+    gsub("/", "-", biocType, fixed = TRUE)
 }
 
 .build_html_status <- function() {
@@ -88,6 +94,8 @@ pkgStatusTable <-
     }
 
     biocType <- .get_pkgType_from_URL(mainPkgs[["Package"]], version)
+    ## adjust for missing package types
+    mainPkgs <- mainPkgs[match(names(biocType), mainPkgs[["Package"]]), ]
     mainPkgs <- dplyr::bind_cols(mainPkgs, pkgType = biocType)
     sdat <-
         BiocPkgTools::biocBuildStatusDB(version = version, pkgType = pkgType)
