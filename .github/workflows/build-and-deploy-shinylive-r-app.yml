@@ -17,6 +17,7 @@ jobs:
         contents: read
         pages: write
         id-token: write
+        actions: read
       steps:
         # Obtain the contents of the repository
         - name: "Check out repository"
@@ -44,7 +45,7 @@ jobs:
         # Make sure to set a retention day to avoid running into a cap
         # This artifact shouldn't be required after deployment onto pages was a success.
         - name: Upload Pages artifact
-          uses: actions/upload-pages-artifact@v2
+          uses: actions/upload-pages-artifact@v3
           with:
             retention-days: 1
 
