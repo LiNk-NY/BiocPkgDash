@@ -1,8 +1,8 @@
 # Bioconductor Package Dashboard Shiny App
 webr::install(
     c(
-        "shiny", "shinydashboard", "DT", "plotly", "bslib", "bsicons",
-        "BiocPkgDash", "BiocManager", "BiocPkgTools"
+        "glue", "shiny", "shinydashboard", "DT", "plotly", "bslib", "bsicons",
+        "BiocPkgDash", "BiocManager"
     ),
     repos = c(
         "https://repo.r-wasm.org/",
@@ -12,6 +12,7 @@ webr::install(
 )
 
 # Load required libraries
+library(glue)
 library(shiny)
 library(shinydashboard)
 library(DT)
@@ -20,7 +21,31 @@ library(bslib)
 library(bsicons)
 library(BiocPkgDash)
 library(BiocManager)
-library(BiocPkgTools)
+
+.stats_table <- function(pkg) {
+    url <- glue::glue(
+        "https://bioconductor.org/packages/stats/bioc/{pkg}/{pkg}_2025_stats.tab"
+    )
+    res <- read.table(url, header = TRUE)
+    subset(
+        res,
+        res$Month != "all" &
+            (res$Nb_of_distinct_IPs !=  0 & res$Nb_of_downloads != 0)
+    )
+}
+
+.pkgbiocdeps <- function(pkg) {
+    all_db <- utils::available.packages(repos = BiocManager::repositories())
+    repo <- BiocManager:::.repositories_bioc(version)["BioCsoft"]
+    biocdb <- utils::available.packages(repos = repo)
+    res <- tools::package_dependencies(
+        pkg, db = all_db, which = "all", recursive = recursive
+    )
+    if (only.bioc)
+        lapply(res, function(pkglist) pkglist[pkglist %in% rownames(biocdb)])
+    else
+        res
+}
 
 # Define UI
 ui <- page_navbar(
@@ -248,7 +273,7 @@ server <- function(input, output, session) {
             main_data()$Package,
             function(pkg) {
                 dl_pkg <- suppressWarnings({
-                    BiocPkgTools::pkgDownloadStats(pkg)
+                    .stats_table(pkg)
                 })
                 dls <- sum(dl_pkg[["Nb_of_distinct_IPs"]])
                 if (!length(dls))
@@ -270,10 +295,7 @@ server <- function(input, output, session) {
         total_deps <- vapply(
             main_data()$Package,
             function(pkg) {
-                deps <- BiocPkgTools::pkgBiocDeps(
-                    pkg,
-                    which = "all"
-                )
+                deps <- .pkgbiocdeps(pkg)
                 length(unlist(deps))
             },
             numeric(1L)
