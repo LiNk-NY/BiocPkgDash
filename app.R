@@ -1,5 +1,9 @@
 # Bioconductor Package Dashboard Shiny App
-options(
+webr::install(
+    c(
+        "shiny", "shinydashboard", "DT", "plotly", "bslib", "bsicons",
+        "BiocPkgDash", "BiocManager", "BiocPkgTools"
+    ),
     repos = c(
         "https://repo.r-wasm.org/",
         "https://webr.bioconductor.org/3.21",
