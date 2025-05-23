@@ -14,10 +14,10 @@ jobs:
       # Describe the permissions for obtain repository contents and
       # deploying a GitHub pages website for the repository
       permissions:
-        contents: read
+        contents: write
         pages: write
         id-token: write
-        actions: read
+        actions: write
       steps:
         # Obtain the contents of the repository
         - name: "Check out repository"
