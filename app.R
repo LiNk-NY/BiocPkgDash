@@ -2,7 +2,7 @@
 webr::install(
     c(
         "glue", "shiny", "shinydashboard", "DT", "bslib", "bsicons",
-        "BiocPkgDash", "BiocManager"
+        "BiocManager"
     ),
     repos = c(
         "https://repo.r-wasm.org/",
@@ -18,7 +18,6 @@ library(shinydashboard)
 library(DT)
 library(bslib)
 library(bsicons)
-library(BiocPkgDash)
 library(BiocManager)
 
 .stats_table <- function(pkg) {
@@ -44,6 +43,30 @@ library(BiocManager)
         lapply(res, function(pkglist) pkglist[pkglist %in% rownames(biocdb)])
     else
         res
+}
+
+.read_views <- function(version) {
+    bioc_repos <- BiocManager:::.repositories_bioc(version = version)
+    views_url <- paste0(bioc_repos["BioCsoft"], "/VIEWS")
+    con <- url(views_url)
+    on.exit(close(con))
+    res <- suppressWarnings({
+        try(read.dcf(con), silent = TRUE)
+    })
+    if (inherits(res, "try-error"))
+        stop("Unable to read VIEWS file URL: ", url)
+    else
+        tibble::as_tibble(res, stringsAsFactors = FALSE)
+}
+
+.renderMaintained <- function(email, version) {
+    views <- .read_views(version)
+    if (is.null(views))
+        stop("No views found for the specified Bioconductor version.")
+    views <- views[grep(email, fixed = TRUE, x = views$Maintainer), ]
+    if (!nrow(views))
+        stop("No packages found for the specified maintainer email.")
+    views
 }
 
 # Define UI
@@ -125,8 +148,8 @@ server <- function(input, output, session) {
 
     # Initialize data
     version <- BiocManager:::.version_bioc(type = "devel")
-    initial_pkgs <- BiocPkgDash:::renderMaintained(
-        email = "maintainer@bioconductor\\.org",
+    initial_pkgs <- .renderMaintained(
+        email = "maintainer@bioconductor.org",
         version = version
     )
 
@@ -136,12 +159,11 @@ server <- function(input, output, session) {
     # Main data reactive
     main_data <- reactive({
         if (
-            emailValue() %in%
-            c("maintainer@bioconductor\\.org", "maintainer@bioconductor.org")
+            emailValue() == "maintainer@bioconductor.org"
         ) {
             initial_pkgs
         } else {
-            BiocPkgDash:::renderMaintained(
+            .renderMaintained(
                 email = emailValue(),
                 version = input$biocver
             )
