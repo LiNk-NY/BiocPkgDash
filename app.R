@@ -76,16 +76,6 @@ ui <- page_navbar(
             inputId = "submit",
             label = "Submit",
             class = "btn-primary"
-        ),
-
-        hr(),
-
-        p("Download the badge wall as an HTML fragment for your website:"),
-
-        downloadButton(
-            outputId = "btnSend",
-            label = "Download HTML",
-            class = "btn-success"
         )
     ),
 
@@ -184,20 +174,6 @@ server <- function(input, output, session) {
             )
         )
     })
-
-    # Download handler for HTML fragment
-    output$btnSend <- downloadHandler(
-        filename = function() {
-            em <- gsub("@", "_at_", emailValue())
-            em <- gsub("\\.", "_dot_", em)
-            paste0(em, ".html")
-        },
-        content = function(file) {
-            BiocPkgDash:::renderHTMLfrag(
-                file = file, data = main_data()
-            )
-        }
-    )
 
     # Download count output
     output$dl_count <- renderText({
