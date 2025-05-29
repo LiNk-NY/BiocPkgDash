@@ -1,7 +1,7 @@
 # Bioconductor Package Dashboard Shiny App
 webr::install(
     c(
-        "glue", "shiny", "shinydashboard", "DT", "plotly", "bslib", "bsicons",
+        "glue", "shiny", "shinydashboard", "DT", "bslib", "bsicons",
         "BiocPkgDash", "BiocManager"
     ),
     repos = c(
@@ -16,7 +16,6 @@ library(glue)
 library(shiny)
 library(shinydashboard)
 library(DT)
-library(plotly)
 library(bslib)
 library(bsicons)
 library(BiocPkgDash)
@@ -128,30 +127,6 @@ ui <- page_navbar(
                 )
             )
         )
-    ),
-
-    nav_panel(
-        title = "Status",
-        card(
-            card_header("Package Status Plot"),
-            plotly::plotlyOutput("status_out")
-        )
-    ),
-
-    nav_panel(
-        title = "Data",
-        card(
-            card_header("Packages Maintained"),
-            DT::dataTableOutput("data_out")
-        )
-    ),
-
-    nav_panel(
-        title = "Status Table",
-        card(
-            card_header("Package Status Table"),
-            DT::dataTableOutput("status_table")
-        )
     )
 )
 
@@ -223,49 +198,6 @@ server <- function(input, output, session) {
             )
         }
     )
-
-    # Data table output
-    output$data_out <- DT::renderDataTable({
-        DT::datatable(
-            main_data()[, c(
-                "Package", "Version", "License", "NeedsCompilation", "Title",
-                "hasREADME", "hasNEWS", "hasINSTALL", "hasLICENSE",
-                "dependencyCount"
-            )],
-            rownames = FALSE,
-            options = list(
-                dom = "ftp",
-                pageLength = 20,
-                paging = TRUE
-            )
-        )
-    })
-
-    # Status plot output
-    output$status_out <- plotly::renderPlotly(
-        BiocPkgDash::pkgStatusPlot(
-            version = input$biocver,
-            data = main_data()
-        )
-    )
-
-    # Status table output
-    output$status_table <- DT::renderDataTable({
-        DT::datatable(
-            BiocPkgDash::pkgStatusTable(
-                version = input$biocver,
-                data = main_data()
-            ),
-            escape = FALSE,
-            rownames = FALSE,
-            options = list(
-                dom = "ftp",
-                pageLength = 20,
-                lengthChange = FALSE,
-                paging = TRUE
-            )
-        )
-    })
 
     # Download count output
     output$dl_count <- renderText({
