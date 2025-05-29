@@ -2,7 +2,7 @@
 webr::install(
     c(
         "glue", "shiny", "shinydashboard", "DT", "bslib", "bsicons",
-        "BiocManager"
+        "BiocManager", "whisker"
     ),
     repos = c(
         "https://repo.r-wasm.org/",
@@ -67,6 +67,80 @@ library(BiocManager)
     if (!nrow(views))
         stop("No packages found for the specified maintainer email.")
     views
+}
+
+.get_pkgType_from_URL <- function (packages, version)
+{
+    repos <- BiocManager:::.repositories_bioc(version)
+    pkgsdb <- available.packages(repos = repos)
+    repo_urls <- pkgsdb[rownames(pkgsdb) %in% packages, "Repository"]
+    tail_urls <- vapply(strsplit(repo_urls, paste0(version, "/")),
+                        "[", character(1L), 2L)
+    biocType <- gsub("/src/contrib", "", tail_urls)
+    pkgsnot <- !packages %in% names(biocType)
+    npkgs <- paste(packages[pkgsnot], collapse = ", ")
+    if (any(pkgsnot))
+        warning("Bioconductor package category not found for: ", npkgs)
+    gsub("/", "-", biocType, fixed = TRUE)
+}
+
+.SHIELDS_URL <- "https://bioconductor.org/shields/build/"
+.CHECK_RESULTS_URL <- "http://bioconductor.org/checkResults/"
+
+.build_urls_temp <- function(packages, pkgType, templates)
+{
+    .data <- data.frame(
+        package = packages, pkgType = pkgType
+    )
+    result <- lapply(templates, function(template, tdata) {
+        apply(tdata, 1L, function(x) {
+            whisker::whisker.render(
+                data = x,
+                template = template
+            )
+        })
+    }, tdata = .data)
+    cbind.data.frame(package = .data[["package"]], result)
+}
+
+.build_html_link <- function(.data, shieldCol, resultCol, version) {
+    paste0(
+        '<a href=', dQuote(.data[[resultCol]]), ' target="_blank">',
+        '<img src=', dQuote(.data[[shieldCol]]),
+        ' alt="Bioconductor-', version, ' Build Status"></a>'
+    )
+}
+
+.badgesDF <- function (email, data = NULL)
+{
+    version <- BiocManager:::.version_bioc(type = "devel")
+    if (is.null(data))
+        maindf <- .renderMaintained(email = email, version = version)
+    else
+        maindf <- data
+    pkgType <- .get_pkgType_from_URL(maindf[["Package"]], version)
+    version <- c("release", "devel")
+    templates <- c(
+        paste0(.SHIELDS_URL, version, "/{{pkgType}}/{{package}}.svg"),
+        paste0(.CHECK_RESULTS_URL, version, "/{{pkgType}}-LATEST/{{package}}")
+    )
+    names(templates) <- c("rshield", "dshield", "rresult", "dresult")
+    maindf <- maindf[match(names(pkgType), maindf[["Package"]]),
+    ]
+    urldf <- .build_urls_temp(
+        packages = maindf[["Package"]],
+        pkgType = pkgType,
+        templates = templates
+    )
+    rellink <- .build_html_link(urldf, "rshield", "rresult", "release")
+    devlink <- .build_html_link(urldf, "dshield", "dresult", "devel")
+    data.frame(
+        Package = maindf[["Package"]],
+        `Bioc-release` = rellink,
+        `Bioc-devel` = devlink,
+        row.names = NULL,
+        check.names = FALSE
+    )
 }
 
 # Define UI
@@ -183,7 +257,7 @@ server <- function(input, output, session) {
     # Badges table output
     output$badge_out <- DT::renderDataTable({
         DT::datatable(
-            BiocPkgDash:::badgesDF(
+            .badgesDF(
                 data = main_data()
             ),
             escape = FALSE,
