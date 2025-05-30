@@ -37,12 +37,9 @@ library(BiocManager)
     repo <- BiocManager:::.repositories_bioc(version)["BioCsoft"]
     biocdb <- utils::available.packages(repos = repo)
     res <- tools::package_dependencies(
-        pkg, db = all_db, which = "all", recursive = recursive
+        pkg, db = all_db, which = "all", recursive = FALSE
     )
-    if (only.bioc)
-        lapply(res, function(pkglist) pkglist[pkglist %in% rownames(biocdb)])
-    else
-        res
+    lapply(res, function(pkglist) pkglist[pkglist %in% rownames(biocdb)])
 }
 
 .read_views <- function(version) {
@@ -111,7 +108,7 @@ library(BiocManager)
     )
 }
 
-.badgesDF <- function (email, data = NULL)
+.badgesDF <- function(email, data = NULL)
 {
     version <- BiocManager:::.version_bioc(type = "devel")
     if (is.null(data))
