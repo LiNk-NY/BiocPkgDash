@@ -143,7 +143,10 @@ library(BiocManager)
 # Define UI
 ui <- page_navbar(
     title = div(
-        img(src = "https://bioconductor.org/images/logo_bioconductor.gif", height = "30px"),
+        img(
+            src = "https://bioconductor.org/images/logo_bioconductor.gif",
+            height = "30px"
+        ),
         "Bioconductor Package Dashboard"
     ),
     theme = bs_theme(bootswatch = "minty"),
