@@ -32,7 +32,7 @@ library(BiocManager)
     )
 }
 
-.pkgbiocdeps <- function(pkg) {
+.pkgbiocdeps <- function(pkg, version) {
     all_db <- utils::available.packages(repos = BiocManager::repositories())
     repo <- BiocManager:::.repositories_bioc(version)["BioCsoft"]
     biocdb <- utils::available.packages(repos = repo)
@@ -299,7 +299,7 @@ server <- function(input, output, session) {
         total_deps <- vapply(
             main_data()$Package,
             function(pkg) {
-                deps <- .pkgbiocdeps(pkg)
+                deps <- .pkgbiocdeps(pkg, version = version)
                 length(unlist(deps))
             },
             numeric(1L)
